@@ -1,125 +1,196 @@
----
-layout: post
-title:  "IoT Architecture in automotive"
-author: "Sander van den Hoven, Valery Jacobs"
-author-link: "#"
-#author-image: "{{ site.baseurl }}/images/authors/photo.jpg"
-date:   2016-05-19
-categories: [IoT]
-color: "blue"
-#image: "{{ site.baseurl }}/images/imagename.png" #should be ~350px tall
-excerpt: Add a short description of what this article is about.
-language: [English]
-verticals: [Transportation & Logistics, Smart Cities, Agricultural, Environmental])
----
-
 Begin with an intro statement with the following details:
 
-- Solution overview
- 
-- Key technologies used
- 
-- Core Team: Names, roles and Twitter handles 
+-   Solution overview
 
+-   Key technologies used
 
-## Customer profile ##
-This section will contain general information about the customer, including the following:
+-   Core Team: Names, roles and Twitter handles
 
-- Company name and URL
+Customer profile
+----------------
 
-- Company description
+This section will contain general information about the customer, including the
+following:
 
-- Company location
+-   Company name and URL
 
-- What are their product/service offerings?
+-   Company description
 
+-   Company location
 
+-   What are their product/service offerings?
 
- 
-## Problem statement ##
+Problem statement
+-----------------
 
+Handling large amounts of data is challenging in any architecture but in this
+scenario specifically the frequency with which data needs to be recorded and the
+volume that the devices (vehicles) are deployed in poses extra challenges that
+need to be recognized and tackled.
 
-This section will define the problem(s)/challenges that the customer wants to address with an IoT solution. Include things like costs, customer experience, etc.
- 
-*If you’d really like to make your write-up pop, include a customer quote that highlights the customer’s problem(s)/challenges.*
+The potential value of the data depends on many factors like data quality,
+frequency, validity and depth. This means that the specifications for this IoT
+solution must be finely calibrated to keep costs at a feasible level and offer
+the performance that is needed for outputting the end result of the system.
 
+An additional challenge was that Beijer doesn’t exactly know yet the treasures
+the data might contain and how the customers, who pay for the data, will be
+using it as they probably also have to validate its value. This called for an
+exploratory mind-set that states that initially the amount of data and the
+number of measurements in that data should be as extensive as possible. This
+approach offers the opportunity to take a broad overview of what information the
+data could unlock and then narrow down to the cases that have these
+characteristics:
 
- 
-## Solution and steps ##
+-   The data has a business value without intense processing (f.e. GPS
+    positioning offering direct insights on traffic congestion by simply
+    plotting it on a map)
 
+-   The data interchange frequency is at the right level to have an adequate
+    level of accuracy but should also not be too high as this has direct
+    consequences on costs and performance (f.e. the frequency with which vehicle
+    speed is sensed determines the scenario’s that this data can be used for).
 
-The majority of your win artifacts will be included in this section, including (but not limited to) the following: Pictures, drawings, architectural diagrams, value stream mappings and demo videos.
+-   The payload is optimized for the use in a high-throughput architecture.
+    Carefully choosing the payload format is an important step in the process of
+    minimizing the byte streams that need to pass the system.
+
+We anticipated the amount of data would be quite high based on the indicative
+requirements we received early in the engagement. This article will outline in
+detail what numbers we were trying to hit and how we calculated various other
+metrics and performance targets from that.
+
+Customer that act as data providers for Vetuda currently don’t receive an SDK
+from Beijer but they receive specifications describing to how the integration
+needs to be implemented. This means that each customer has to build their own
+connector to connect to Vetuda, or more precise be connected by Vetuda. Changing
+the underlying mechanism means impacting all these implementations incurring
+costs on a per-customer basis.
+
+In the existing implementation data providers run HTTP based interfaces that are
+called from the Vetuda back-end to collect data. These requests vary in
+properties (last hour update, full day data dump, subset of metrics etc.). The
+benefit of this is that Vetuda ingests data on its own terms and providers act
+as a buffer for the incoming data streams the vehicles submit. A downside is
+that extra logic is needed to call out to the interfaces and to keep track of
+data completeness.
+
+The goal of the hack fest was to further investigate the topics mentioned above
+and to validate the assumption we made in advance that Azure can offer the
+performance needed in handling the large amount of data at a rate that is
+required for the more complex and data intensive scenario’s.
+
+The core points that were part of this investigation were:
+
+-   Can Azure offer the bandwidth and processing power to ingest the data
+    streams
+
+-   How does the architecture need to be setup in order to meet the requirements
+    for handling 50.000 vehicles recording data on 1 per second interval.
+
+-   What are the costs involved in implementing the architecture using Azure
+    PaaS services and how can these costs be minimized.
+
+-   How can the current architecture be optimized for the cloud to improve
+    performance and scalability
+
+-   Which alternatives are there in the implementation and what are their pro’s
+    and cons.
+
+*If you’d really like to make your write-up pop, include a customer quote that
+highlights the customer’s problem(s)/challenges.*
+
+Solution and steps
+------------------
+
+The majority of your win artifacts will be included in this section, including
+(but not limited to) the following: Pictures, drawings, architectural diagrams,
+value stream mappings and demo videos.
 
 This section should include the following details:
 
-- What was worked on and what problem it helped solve.
+-   What was worked on and what problem it helped solve.
 
-- Architecture diagram/s (**required**). Example below:
+-   Architecture diagram/s (**required**). Example below:
 
- ![IoT Architecture Diagram](/images/templates/iotarchitecture.png)
+IoT Architecture Diagram
+
+IoT Architecture Diagram
 
 **Directions for adding images:**
 
-1. Create a folder for your project images in the “images” folder in the GitHub repo files. This is where you will add all of the images associated with your write-up.
- 
-2. Add links to your images using the following absolute path:
+1.  Create a folder for your project images in the “images” folder in the GitHub
+    repo files. This is where you will add all of the images associated with
+    your write-up.
 
-  `![Description of the image]({{site.baseurl}}/images/projectname/myimage.png)`
-    
-  Here’s an example: 
+2.  Add links to your images using the following absolute path:
 
-  `![Value Stream Mapping]({{site.baseurl}}/images/orckestra/orckestra2.jpg)`
+`![Description of the image]({{site.baseurl}}/images/projectname/myimage.png)`
 
- Note that capitalization of the file name and the file extension must match exactly for the images to render properly.
+Here’s an example:
 
-*If you’d really like to make your write-up pop, include a customer quote that highlights the solution.*
+`![Value Stream Mapping]({{site.baseurl}}/images/orckestra/orckestra2.jpg)`
 
+Note that capitalization of the file name and the file extension must match
+exactly for the images to render properly.
 
-## Technical delivery ##
-This section will include the following details of how the solution was implemented:
+*If you’d really like to make your write-up pop, include a customer quote that
+highlights the solution.*
 
-- Security details
+Technical delivery
+------------------
 
-- Device used (be specific, details if PLC, microcontroller, etc.)
+This section will include the following details of how the solution was
+implemented:
 
-- Device messages sent (packet size, frequency of send/day/device, number of messages)
+-   Security details
 
-- SDKs used, languages, etc.
+-   Device used (be specific, details if PLC, microcontroller, etc.)
 
-- Code artifacts
+-   Device messages sent (packet size, frequency of send/day/device, number of
+    messages)
 
-- Pointers to references or documentation
+-   SDKs used, languages, etc.
 
-- Learnings from the Microsoft team and the customer team
+-   Code artifacts
 
+-   Pointers to references or documentation
 
- 
-## Conclusion ##
+-   Learnings from the Microsoft team and the customer team
 
-This section will briefly summarize the technical story with the following details included:
+Conclusion
+----------
 
-- Measurable impact/benefits resulting from the implementation of the solution.
+This section will briefly summarize the technical story with the following
+details included:
 
-- General lessons:
+-   Measurable impact/benefits resulting from the implementation of the
+    solution.
 
-  - Insights the team came away with.
+-   General lessons:
 
-  - What can be applied or reused for other environments or customers.
+-   Insights the team came away with.
 
-- Opportunities going forward:
+-   What can be applied or reused for other environments or customers.
 
-  - Details on how the customer plans to proceed or what more they hope to accomplish.
+-   Opportunities going forward:
 
-*If you’d really like to make your write-up pop, include a customer quote highlighting impact, benefits, general lessons, and/or opportunities.*
+-   Details on how the customer plans to proceed or what more they hope to
+    accomplish.
 
+*If you’d really like to make your write-up pop, include a customer quote
+highlighting impact, benefits, general lessons, and/or opportunities.*
 
-## Additional resources ##
-In this section, include a list of links to resources that complement your story, including (but not limited to) the following:
+Additional resources
+--------------------
 
-- Documentation
+In this section, include a list of links to resources that complement your
+story, including (but not limited to) the following:
 
-- Blog posts
+-   Documentation
 
-- GitHub repos
+-   Blog posts
 
-- Etc…
+-   GitHub repos
+
+-   Etc…
