@@ -83,7 +83,7 @@ required for the more complex and data intensive scenario’s.
 The core points that were part of this investigation were:
 
 -   Can Azure offer the bandwidth and processing power to ingest the data
-    streams
+    streams.
 
 -   How does the architecture need to be setup in order to meet the requirements
     for handling 50.000 vehicles recording data on 1 per second interval.
@@ -92,16 +92,49 @@ The core points that were part of this investigation were:
     PaaS services and how can these costs be minimized.
 
 -   How can the current architecture be optimized for the cloud to improve
-    performance and scalability
+    performance and scalability.
 
 -   Which alternatives are there in the implementation and what are their pro’s
     and cons.
 
+To get to an acceptable of details the hackfest was scoped to focus on data
+ingest. Further processing and analyzing the data is considered a project by
+itself with many options to consider and include in a proof of concept.
+
 *If you’d really like to make your write-up pop, include a customer quote that
 highlights the customer’s problem(s)/challenges.*
 
-Solution and steps
-------------------
+Overall solution and steps
+--------------------------
+
+### Adding IoT Hub for real-time data and cloud to device communication
+
+Although the Vetuda system focusses on the ingestion of large amounts of data it
+does make sense to categorize these data streams. Data can be handled as it
+comes into the system to result in near-real-time alerts (hot path) while at the
+same time it can be analyzed later on together with data accumulated over time
+(cold path).
+
+Vetuda also has plans to extend their services with new types of vehicles that
+might not even involve the intermediate data provider role but consists of
+devices (vehicles) connecting to the cloud back-end directly.
+
+For these requirements to be satisfied we added one of the core Azure IoT
+Services into the mix, IoT Hub. IoT Hub makes sense for those scenario’s where a
+direct connection between an end node device or a gateway and the cloud is
+involved. It offers high-volume data ingest and a registry for potentially
+millions of devices. It communicates over multiple protocols like HTTP (mostly
+for backwards compatibility), MQTT (as it is the most popular protocol in M2M
+and IoT currently) and AMQP (a new, Microsoft backed, member in the IoT family
+offering updates specs compared to MQTT).
+
+When a fleet of devices is directly connected to the Vetuda back-end it also
+places the responsibility of device management in that domain. Luckily IoT Hub
+device management has multiple features that accelerate implementing device
+management.
+
+Under the hood IoT Hub is based on Azure Event Hubs and on the consumer side
+(reading the data from the buffer) the developer experience is identical
 
 The majority of your win artifacts will be included in this section, including
 (but not limited to) the following: Pictures, drawings, architectural diagrams,
