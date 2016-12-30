@@ -1,25 +1,38 @@
 ---
 layout: post
-title:  "Add title with customer name here"
-author: "Martin Bald"
-author-link: "#"
-#author-image: "{{ site.baseurl }}/images/authors/photo.jpg"
-date:   2016-05-19
-categories: [IoT]
+title:  "Ingesting massive amounts of Car Sensor data into Azure"
+author: "Valery Jacobs, Sander van den Hoven, Eric Maino"
+author-link: ""
+#author-image: 
+date:   2016-12-30
+categories: [IoT] [Service Fabric] [Azure Functions]
 color: "blue"
-#image: "{{ site.baseurl }}/images/imagename.png" #should be ~350px tall
-excerpt: Add a short description of what this article is about.
-language: The language of the article (e.g.: [English])
-verticals: The vertical markets this article has focus on (e.g.: [Energy, Manufacturing & Resources, Financial Services, Public Sector, “Retail, Consumer Products & Services”, Environmental, Communications/Media, Transportation & Logistics, Smart Cities, Agricultural, Environmental, Healthcare, Other])
+#image: 
+excerpt: Ingesting massive amounts of Car Sensor data into Azure using Azure Functions, Service Fabric, Event Hub, IOT Hub.
+language: English
+verticals: Any vertical that produces lots of sensordata and want be able to analyse it in Azure)
 ---
 
+## Introduction ## 
 Begin with an intro statement with the following details:
 
 -   Solution overview
+	Ingesting massive amounts of Car Sensor data into Azure
 
 -   Key technologies used
+	Ingesting massive amounts of Car Sensor data into Azure using Azure Functions, Service Fabric, Event Hub, IOT Hub.
 
 -   Core Team: Names, roles and Twitter handles
+
+	Microsoft:
+	-	Eric Maino
+	-	Valery Jacobs
+	-	Sander van den Hoven
+
+	Beijer and Sioux	
+	-	Daan Gerrits
+	-	Matthijs van Bemmelen
+	-	Erwin de Jong	
 
 ## Customer profile ## (sander)
 
@@ -531,15 +544,26 @@ Because or the similarities we have not created a solution during the HackFest. 
 
 ####Pull Scenario using Azure Service Fabric####
 
-
 ####Push Scenario####
 
 ####Feedback Solution using IOT Hub####
 
+####Test Results####
+
 
 Cost
 ----------
-This section describes the cost of the different scenarios. The cost 
+
+
+This section describes the cost of the different scenarios. The cost will be defined for the usage of Azure resources including:
+
+- Virtual Machines
+- Bandwidth
+- Storage
+- Azure Execution
+- Usage EventHub
+- Usage IOTHub
+- Usage Stream Analysis
 
 ###Cost of Pull Scenario using Azure Functions ###
 
