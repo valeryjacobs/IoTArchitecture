@@ -96,13 +96,83 @@ Begin with an intro statement with the following details:
 
 # Problem statement #
 
+Handling large amounts of data is challenging in any architecture but in this
+scenario specifically the frequency with which data needs to be recorded and the
+volume that the devices (vehicles) are deployed in poses extra challenges that
+need to be recognized and tackled.
 
-This section will define the problem(s)/challenges that the customer wants to
-address with an IoT solution. Include things like costs, customer experience,
-etc.
+The potential value of the data depends on many factors like data quality,
+frequency, validity and depth. This means that the specifications for this IoT
+solution must be finely calibrated to keep costs at a feasible level and offer
+the performance that is needed for outputting the end result of the system.
 
-*If you’d really like to make your write-up pop, include a customer quote that
-highlights the customer’s problem(s)/challenges.*
+An additional challenge was that Beijer doesn’t exactly know yet the treasures
+the data might contain and how the customers, who pay for the data, will be
+using it as they probably also have to validate its value. This called for an
+exploratory mind-set that states that initially the amount of data and the
+number of measurements in that data should be as extensive as possible. This
+approach offers the opportunity to take a broad overview of what information the
+data could unlock and then narrow down to the cases that have these
+characteristics:
+
+-   The data has a business value without intense processing (f.e. GPS
+    positioning offering direct insights on traffic congestion by simply
+    plotting it on a map)
+
+-   The data interchange frequency is at the right level to have an adequate
+    level of accuracy but should also not be too high as this has direct
+    consequences on costs and performance (f.e. the frequency with which vehicle
+    speed is sensed determines the scenario’s that this data can be used for).
+
+-   The payload is optimized for the use in a high-throughput architecture.
+    Carefully choosing the payload format is an important step in the process of
+    minimizing the byte streams that need to pass the system.
+
+We anticipated the amount of data would be quite high based on the indicative
+requirements we received early in the engagement. This article will outline in
+detail what numbers we were trying to hit and how we calculated various other
+metrics and performance targets from that.
+
+Customer that act as data providers for Vetuda currently don’t receive an SDK
+from Beijer but they receive specifications describing to how the integration
+needs to be implemented. This means that each customer has to build their own
+connector to connect to Vetuda, or more precise be connected by Vetuda. Changing
+the underlying mechanism means impacting all these implementations incurring
+costs on a per-customer basis.
+
+In the existing implementation data providers run HTTP based interfaces that are
+called from the Vetuda back-end to collect data. These requests vary in
+properties (last hour update, full day data dump, subset of metrics etc.). The
+benefit of this is that Vetuda ingests data on its own terms and providers act
+as a buffer for the incoming data streams the vehicles submit. A downside is
+that extra logic is needed to call out to the interfaces and to keep track of
+data completeness.
+
+The goal of the hack fest was to further investigate the topics mentioned above
+and to validate the assumption we made in advance that Azure can offer the
+performance needed in handling the large amount of data at a rate that is
+required for the more complex and data intensive scenario’s.
+
+The core points that were part of this investigation were:
+
+-   Can Azure offer the bandwidth and processing power to ingest the data
+    streams.
+
+-   How does the architecture need to be setup in order to meet the requirements
+    for handling 50.000 vehicles recording data on 1 per second interval.
+
+-   What are the costs involved in implementing the architecture using Azure
+    PaaS services and how can these costs be minimized.
+
+-   How can the current architecture be optimized for the cloud to improve
+    performance and scalability.
+
+-   Which alternatives are there in the implementation and what are their pro’s
+    and cons.
+
+To get to an acceptable of details the hackfest was scoped to focus on data
+ingest. Further processing and analyzing the data is considered a project by
+itself with many options to consider and include in a proof of concept.
 
 ## Solution and steps (Sander) ##
 The problem for Beijer as described above is to come to a technical and economical feasible solution to ingest large amounts of data from cars into Azure in order to process and anlyse the data into useful information and alerts. 
@@ -202,6 +272,35 @@ The Push Scenario is much simpler than the push scenario as is also tested in th
 The customer has instead of the an deployment of the ViBeX Pull Api an alternative with an deployment of a ViBex Push Service. This ViBeX Push Service will directly sent car data to the Data Retriever (same as described in Pull Scenario). This Data Retriever will service has hub for the data and consequently sent it to storage and the Data Processor. The Data Processor will create alerts that will be sent to Beijer's Clients
 
 The main advantage is that for this architecture no Job Scheduler and Job Worker is required which simplifies it. The numbers of messages, bandwidth usage and storage will remain the same.
+
+### Adding IoT Hub for real-time data and cloud to device communication
+
+Although the Vetuda system focusses on the ingestion of large amounts of data it
+does make sense to categorize these data streams. Data can be handled as it
+comes into the system to result in near-real-time alerts (hot path) while at the
+same time it can be analyzed later on together with data accumulated over time
+(cold path).
+
+Vetuda also has plans to extend their services with new types of vehicles that
+might not even involve the intermediate data provider role but consists of
+devices (vehicles) connecting to the cloud back-end directly.
+
+For these requirements to be satisfied we added one of the core Azure IoT
+Services into the mix, IoT Hub. IoT Hub makes sense for those scenario’s where a
+direct connection between an end node device or a gateway and the cloud is
+involved. It offers high-volume data ingest and a registry for potentially
+millions of devices. It communicates over multiple protocols like HTTP (mostly
+for backwards compatibility), MQTT (as it is the most popular protocol in M2M
+and IoT currently) and AMQP (a new, Microsoft backed, member in the IoT family
+offering updates specs compared to MQTT).
+
+When a fleet of devices is directly connected to the Vetuda back-end it also
+places the responsibility of device management in that domain. Luckily IoT Hub
+device management has multiple features that accelerate implementing device
+management.
+
+Under the hood IoT Hub is based on Azure Event Hubs and on the consumer side
+(reading the data from the buffer) the developer experience is identical
 
 
 Technical delivery
