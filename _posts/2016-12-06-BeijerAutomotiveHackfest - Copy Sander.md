@@ -193,7 +193,7 @@ The problem for Beijer as described above is to come to a technical and economic
 ###Setting the scene in numbers (Sander) ###
 In order to set the scene on how much data will be ingest and processed by the solution this paragraph will define the number. In the Figure 0, the numbers that are set by Beijer are given. These are the number that the solution needs to process once the solution is fully deployed. However it is still required that the solution needs to scale to larger number in the future.
 
-![Figure 0: Constants](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Constants.PNG)`
+![Figure 0: Constants](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Constants.PNG)
 
 The data need to be gathered from 50000 cars for every second. We do the test only for a number signal/messages in order to test the signal with many small messages and less larger messages. We start with 1 signal value per message.
 Because not all cars will drive every moment the number of cars that is driving and producing data is set to 15% (occupation) on average and 33% in peak moments. We assume that about 6 hours per day the peak level occurs. 
@@ -201,7 +201,7 @@ We also define the number of signal values that need to be retrieved per second.
 
 With the input as described above this will lead to a number of messages and bytes that need to get ingested by the solution as described in Figure 1.
 
-![Figure 1: Numbers](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Numbers.PNG)`
+![Figure 1: Numbers](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Numbers.PNG)
 
 Per month this will lead to considerable load and storage (estimated 14TB). In this document we will describe what solutions were tested, if they succeed and what the expected cost is. 
 
@@ -280,7 +280,7 @@ In order to be able to pull all data from all customers it is required that a so
 **The Push Scenario**
 The Push Scenario is much simpler than the push scenario as is also tested in this HackFest. It will require a change in architecture, but the promises of a simpler architecture as such large that Beijer architects has taken it into account as an alternative for the current ViBeX API. The architecture for the Push Scenario is show in Figure 4.
 
-`![Figure 4: Push Solution Components](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/PushComponents.png)`
+![Figure 4: Push Solution Components](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/PushComponents.png)
 
 The customer has instead of the an deployment of the ViBeX Pull Api an alternative with an deployment of a ViBex Push Service. This ViBeX Push Service will directly sent car data to the Data Retriever (same as described in Pull Scenario). This Data Retriever will service has hub for the data and consequently sent it to storage and the Data Processor. The Data Processor will create alerts that will be sent to Beijer's Clients
 
