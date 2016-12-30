@@ -118,7 +118,7 @@ We also define the number of signal values that need to be retrieved per second.
 
 With the input as described above this will lead to a number of messages and bytes that need to get ingested by the solution as described in Figure 1.
 
-![Figure 1: Numbers]({{site.baseurl}}/images/numbers.png)`
+![Figure 1: Numbers](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Numbers.PNG)`
 
 Per month this will lead to considerable load and storage (estimated 14TB). In this document we will describe what solutions were tested, if they succeed and what the expected cost is. 
 
@@ -160,17 +160,17 @@ This call will result in a JSON payload that return the values for signal 191:
     
 
 The VIBEX interface is described in detail in the VIBEX manual:
-[http://vibex](http://vibex "VIBEX-002 - API Design v1.3")
+[https://github.com/svandenhoven/IoTArchitecture/blob/master/VIBEX-002%20-%20API%20Design%20v1.3.pdf](https://github.com/svandenhoven/IoTArchitecture/blob/master/VIBEX-002%20-%20API%20Design%20v1.3.pdf "ViBeX 1.3 Manual")
 
 Each customer will have a Vibex Endpoint which can be called to retrieve the data from cars. Once the data is retrieved it need to be stored and analyzed in Azure. The architecture is shown in the overall architecture that is shown in figure 2.
 
-`![Figure 2: Overall Architecture Pull Solution]({{site.baseurl}}/images/OverallPullArchitecture.png)`
+`![Figure 2: Overall Architecture Pull Solution](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/OverallPullArchitecture.png)`
 
 Every car / vehicle has a device to capture the car data via the CanBus. This data is sent to each customer (fleet owner). They store in they own data store and perform their local business processes on it. The data is exposed via a secure ViBeX REST API. In the Beijer Solution in Azure a solution runs that pulls this data into Azure.
 
 In order to be able to pull all data from all customers it is required that a solution is build that can handle the required throughput. In order to this the solution will have the following components as described in figure 3.
 
-`![Figure 3: Pull Solution Components]({{site.baseurl}}/images/PullComponents.png)`
+`![Figure 3: Pull Solution Components](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/PullComponents.png)`
 
 
 - Job Scheduler: 
@@ -197,7 +197,7 @@ In order to be able to pull all data from all customers it is required that a so
 **The Push Scenario**
 The Push Scenario is much simpler than the push scenario as is also tested in this HackFest. It will require a change in architecture, but the promises of a simpler architecture as such large that Beijer architects has taken it into account as an alternative for the current ViBeX API. The architecture for the Push Scenario is show in Figure 4.
 
-`![Figure 4: Pusg Solution Components]({{site.baseurl}}/images/PushComponents.png)`
+`![Figure 4: Pusg Solution Components](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/PushComponents.png)`
 
 The customer has instead of the an deployment of the ViBeX Pull Api an alternative with an deployment of a ViBex Push Service. This ViBeX Push Service will directly sent car data to the Data Retriever (same as described in Pull Scenario). This Data Retriever will service has hub for the data and consequently sent it to storage and the Data Processor. The Data Processor will create alerts that will be sent to Beijer's Clients
 
