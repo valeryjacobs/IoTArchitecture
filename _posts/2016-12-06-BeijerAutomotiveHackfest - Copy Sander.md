@@ -197,51 +197,12 @@ In order to be able to pull all data from all customers it is required that a so
 **The Push Scenario**
 The Push Scenario is much simpler than the push scenario as is also tested in this HackFest. It will require a change in architecture, but the promises of a simpler architecture as such large that Beijer architects has taken it into account as an alternative for the current ViBeX API. The architecture for the Push Scenario is show in Figure 4.
 
-`![Figure 4: Pusg Solution Components](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/PushComponents.png)`
+`![Figure 4: Push Solution Components](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/PushComponents.png)`
 
 The customer has instead of the an deployment of the ViBeX Pull Api an alternative with an deployment of a ViBex Push Service. This ViBeX Push Service will directly sent car data to the Data Retriever (same as described in Pull Scenario). This Data Retriever will service has hub for the data and consequently sent it to storage and the Data Processor. The Data Processor will create alerts that will be sent to Beijer's Clients
 
 The main advantage is that for this architecture no Job Scheduler and Job Worker is required which simplifies it. The numbers of messages, bandwidth usage and storage will remain the same.
 
-
-----------
-
-The majority of your win artifacts will be included in this section, including
-(but not limited to) the following: Pictures, drawings, architectural diagrams,
-value stream mappings and demo videos.
-
-This section should include the following details:
-
--   What was worked on and what problem it helped solve.
-
--   Architecture diagram/s (**required**). Example below:
-
-IoT Architecture Diagram
-
-IoT Architecture Diagram
-
-
-----------
-
-**Directions for adding images:**
-
-1.  Create a folder for your project images in the “images” folder in the GitHub
-    repo files. This is where you will add all of the images associated with
-    your write-up.
-
-2.  Add links to your images using the following absolute path:
-
-`![Description of the image]({{site.baseurl}}/images/projectname/myimage.png)`
-
-Here’s an example:
-
-`![Value Stream Mapping]({{site.baseurl}}/images/orckestra/orckestra2.jpg)`
-
-Note that capitalization of the file name and the file extension must match
-exactly for the images to render properly.
-
-*If you’d really like to make your write-up pop, include a customer quote that
-highlights the solution.*
 
 Technical delivery
 ------------------
@@ -476,27 +437,10 @@ Because or the similarities we have not created a solution during the HackFest. 
 
 ####Feedback Solution using IOT Hub####
 
-This section will include the following details of how the solution was
-implemented:
-
--   Security details
-
--   Device used (be specific, details if PLC, microcontroller, etc.)
-
--   Device messages sent (packet size, frequency of send/day/device, number of
-    messages)
-
--   SDKs used, languages, etc.
-
--   Code artifacts
-
--   Pointers to references or documentation
-
--   Learnings from the Microsoft team and the customer team
 
 Cost
 ----------
-This section describes the cost of the different scenarios
+This section describes the cost of the different scenarios. The cost 
 
 ###Cost of Pull Scenario using Azure Functions ###
 
