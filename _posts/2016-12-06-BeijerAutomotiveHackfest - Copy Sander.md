@@ -110,7 +110,7 @@ The problem for Beijer as described above is to come to a technical and economic
 ###Setting the scene in numbers (Sander) ###
 In order to set the scene on how much data will be ingest and processed by the solution this paragraph will define the number. In the Figure 0, the numbers that are set by Beijer are given. These are the number that the solution needs to process once the solution is fully deployed. However it is still required that the solution needs to scale to larger number in the future.
 
-![Figure 0: Numbers](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Constants.PNG)`
+![Figure 0: Constants](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Constants.PNG)`
 
 The data need to be gathered from 50000 cars for every second. We do the test only for a number signal/messages in order to test the signal with many small messages and less larger messages. We start with 1 signal value per message.
 Because not all cars will drive every moment the number of cars that is driving and producing data is set to 15% (occupation) on average and 33% in peak moments. We assume that about 6 hours per day the peak level occurs. 
@@ -164,13 +164,13 @@ The VIBEX interface is described in detail in the VIBEX manual:
 
 Each customer will have a Vibex Endpoint which can be called to retrieve the data from cars. Once the data is retrieved it need to be stored and analyzed in Azure. The architecture is shown in the overall architecture that is shown in figure 2.
 
-`![Figure 2: Overall Architecture Pull Solution](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/OverallPullArchitecture.png)`
+![Figure 2: Overall Architecture Pull Solution](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/OverallPullArchitecture.png)
 
 Every car / vehicle has a device to capture the car data via the CanBus. This data is sent to each customer (fleet owner). They store in they own data store and perform their local business processes on it. The data is exposed via a secure ViBeX REST API. In the Beijer Solution in Azure a solution runs that pulls this data into Azure.
 
 In order to be able to pull all data from all customers it is required that a solution is build that can handle the required throughput. In order to this the solution will have the following components as described in figure 3.
 
-`![Figure 3: Pull Solution Components](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/PullComponents.png)`
+![Figure 3: Pull Solution Components](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/PullComponents.png)
 
 
 - Job Scheduler: 
