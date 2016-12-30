@@ -110,7 +110,7 @@ The problem for Beijer as described above is to come to a technical and economic
 ###Setting the scene in numbers (Sander) ###
 In order to set the scene on how much data will be ingest and processed by the solution this paragraph will define the number. In the Figure 0, the numbers that are set by Beijer are given. These are the number that the solution needs to process once the solution is fully deployed. However it is still required that the solution needs to scale to larger number in the future.
 
-![Figure 0: Numbers]({{site.baseurl}}/images/constants.png)`
+![Figure 0: Numbers](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Constants.PNG)`
 
 The data need to be gathered from 50000 cars for every second. We do the test only for a number signal/messages in order to test the signal with many small messages and less larger messages. We start with 1 signal value per message.
 Because not all cars will drive every moment the number of cars that is driving and producing data is set to 15% (occupation) on average and 33% in peak moments. We assume that about 6 hours per day the peak level occurs. 
