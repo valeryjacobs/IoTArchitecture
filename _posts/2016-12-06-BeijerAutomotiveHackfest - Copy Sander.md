@@ -558,12 +558,22 @@ Cost
 This section describes the cost of the different scenarios. The cost will be defined for the usage of Azure resources including:
 
 - Virtual Machines
+
+	Virtual Machines on Azure are payed on hourly usage) and the price differs per type of VM that is created. We have chosen to use th D2 that cost €0,236/hour = €157,68/month.
+
 - Bandwidth
+
+	Bandwith is for normal use only payed for outbound (egress) network traffic. This is for this case out of scope as we only ingress data, so no costs are calculated for bandwidth. Of course the customers of Beijer will need to sent the data to Azure. The cost of this bandwidth is set our of scope for this document.
+	
 - Storage
+
+	In Azure storage is calculated for storing, writing, retrieval and operation. In this document we only define the cost for the data that is gathered. The cost we define is to store and write to the storage. Cost for retrieval and operation are out of scope. The cost for storage are €8,64/TB for storage, €2.16/TB for writing.
+
 - Azure Execution
 - Usage EventHub
 - Usage IOTHub
 - Usage Stream Analysis
+- 
 
 ###Cost of Pull Scenario using Azure Functions ###
 
