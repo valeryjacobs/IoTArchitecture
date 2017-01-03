@@ -604,8 +604,10 @@ To get the an optimum for the retrieval of data we need to consider that  the ti
 
 In the following tables an overview is given of the cost of Azure Function based on the sampling rate. Table 1 shows the cost optimized on duration of each job, Table 2 shows the cost optimized of the number of executions.
 
+Table 1
 ![Table 1: Azure Function Cost optimized on Duration](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionCostOptimizedonDuration.PNG)
 
+Table 2
 ![Table 2: Azure Function Cost optimized on number executions](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionCostOptimizedonExecutions.PNG)
 
 
