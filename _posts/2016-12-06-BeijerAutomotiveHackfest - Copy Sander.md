@@ -569,13 +569,46 @@ This section describes the cost of the different scenarios. The cost will be def
 
 	In Azure storage is calculated for storing, writing, retrieval and operation. In this document we only define the cost for the data that is gathered. The cost we define is to store and write to the storage. Cost for retrieval and operation are out of scope. The cost for storage are €8,64/TB for storage, €2.16/TB for writing.
 
-- Azure Execution
+- Azure Functions 
+
+	Azure Functions cost is calculated on executions and on used memory. The price is determined Execution Time and use of Memory plus the executions. THe prise is €0.000013/GB-s and €0.1687 per Million Executions, where the first 400,000 GB/s and 1,000,000 executions are free.
+	The advantage of Azure Functions is that if the solution is not used there are no cost and when the system is gradually used more, the cost also gradually rise.
+
 - Usage EventHub
+
+	The Azure Event Hub is priced on the number of events that are processed (called ingres) and the use of throughput units. Each throughput unit is capable to handle 1 MB/sec of events, with max 1000 ingress events. We assume that we need the max of 20 thoughput units (10 for input and 10 for output to for instance stream analytics). The cost are €0.024 per million events and €9.41 euro per throughput unit for a full month (744 hours).
+
 - Usage IOTHub
-- Usage Stream Analysis
-- 
+
+	To be done by Valery.
+
+
 
 ###Cost of Pull Scenario using Azure Functions ###
+
+In order to define the cost for Azure Function we have done a test with the software described in section "Pull Scenario using Azure Function". We haven taken some constants to do the cost calculation as can be seen in Figure 5. More detail on the cost can be found in the Azure Pricing Calculator on https://azure.microsoft.com/en-us/pricing/calculator. We assume that the azure functions need the max memory of 1536 MB.
+
+![Figure 5: Azure Function Durations](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionConstants.PNG)
+
+We have done mutiple run to find the average throughput. We have done tests with 1000, 2500, 5000,7500 and 50000 signals in one job. For the system it does not matter if this are signals from 1 car, from mutiple cars or a combination. Figure 6 shows the average execution time.
+
+![Figure 6: Azure Function Durations](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionDuration.PNG)
+
+In Figure 7 a graphical representation of this table is given:
+
+![Figure 7: Azure Function Duration Graph](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionDurationGrap.PNG)
+
+
+We have done an extrapolation to the number of items that can be done in 1 second (which is on average 312.5).
+To get the an optimum for the retrieval of data we need to consider that  the time it takes to retrieve and processed the data should not be longer that the retrieval interval. For instance if we want data for every second,but we retrieve every 5 seconds to get the data from last 5 seconds, the processing must be lower than 5 seconds to avoid congestion. This has impact on the Sampling Rate. THe higher the sampling rate the more signalvalues need to be retrieved the more retrieval processes need to run in parallel.
+
+In the following tables an overview is given of the cost of Azure Function based on the sampling rate. Table 1 shows the cost optimized on duration of each job, Table 2 shows the cost optimized of the number of executions.
+
+![Table 1: Azure Function Cost optimized on Duration](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionCostOptimizedonDuration.PNG)
+
+![Table 2: Azure Function Cost optimized on number executions](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionCostOptimizedonExecutions.PNG)
+
+
 
 ###Cost of Pull Scenario using Web Apps/Jobs ###
 
