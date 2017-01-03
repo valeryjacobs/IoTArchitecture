@@ -599,16 +599,43 @@ In Figure 7 a graphical representation of this table is given:
 ![Figure 7: Azure Function Duration Graph](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionDurationGrap.PNG)
 
 
-We have done an extrapolation to the number of items that can be done in 1 second (which is on average 312.5).
+We have done an extrapolation to the number of items that can be done in 1 second (which is on average 320).
 To get the an optimum for the retrieval of data we need to consider that  the time it takes to retrieve and processed the data should not be longer that the retrieval interval. For instance if we want data for every second,but we retrieve every 5 seconds to get the data from last 5 seconds, the processing must be lower than 5 seconds to avoid congestion. This has impact on the Sampling Rate. THe higher the sampling rate the more signalvalues need to be retrieved the more retrieval processes need to run in parallel.
+
+In Figure 8 gives the time it takes to ingest 16500 signal values with a 320 signal/sec depending on the number of vibex servers are called. This is in fact executing parallel requests.
+
+![Figure 8: Time depending on number of Vibex Servers](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/RequiredVibexServers.PNG)
 
 In the following tables an overview is given of the cost of Azure Function based on the sampling rate. Table 1 shows the cost optimized on duration of each job, Table 2 shows the cost optimized of the number of executions.
 
-Table 1
-![Table 1: Azure Function Cost optimized on Duration](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionCostOptimizedonDuration.PNG)
 
-Table 2
+![Table 1: Azure Function Cost optimized on Duration](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionCostOptimizedonDuration.PNG)
+Table 1
+
+In Table 1 can be seen that if it required that from every car in peak time (33% of 55000 = 16500) every second one signal is required, this mean that there are 52 parallel processes need to start that each will retrieve avg 320 signals per second (this is max as we saw in our tests. This will result with memory consumption of 1536 MB in a monthly cost of €2641,-. 
+This is not a feasible option as:
+
+- Azure Function are not able to run 53 parallel processes
+
+- The timespan of 1 sec is very short and leaves not room for latency to actually retreive the data from a remote location 
+
+- The the costs are relativey high.
+
+A more feasible solution is too lower the sampling rate to once per 10 seconds. In the calcuation it can we seen that the cost lower to €264 and the number of paralle processes is feasible.
+
+If the optimization is not done on duration but of number of execution this will be the estimate:
+
 ![Table 2: Azure Function Cost optimized on number executions](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/AzureFunctionCostOptimizedonExecutions.PNG)
+Table 2
+
+We see that with 7 Vibex servers the request time is also 7 seconds. With The estimate cost to have 1 signal every second is much lower that in previous table. But this is not possible at it would take more that 1 second (7 sec with 7 vibex) to perform the task. 
+Be if the sampling rate is lowered to once per 10 seconds and the 16500 are divided over 7 Vibex Server (=customers) it is possible to get ingest the required signal values and have 3 seconds left to do the http request. This seems to be the optimal constalation.
+
+So optimum is:
+- 7 Vibex servers that can be called in parallel
+- Having sample rate of every 10 seconds to allow request and processing.
+- This will lead to monthly cost for Azure Functions of €36.
+
 
 
 
