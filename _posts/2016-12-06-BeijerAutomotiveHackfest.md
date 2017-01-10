@@ -559,7 +559,7 @@ This section describes the cost of the different scenarios. The cost will be def
 
 - Virtual Machines
 
-	Virtual Machines on Azure are payed on hourly usage) and the price differs per type of VM that is created. We have chosen to use th D2 that cost €0,236/hour = €157,68/month.
+	Virtual Machines on Azure are payed on hourly usage) and the price differs per type of VM that is created. 
 
 - Bandwidth
 
@@ -581,6 +581,7 @@ This section describes the cost of the different scenarios. The cost will be def
 - Usage IOTHub
 
 	To be done by Valery.
+
 
 
 
@@ -632,22 +633,96 @@ We see that with 7 Vibex servers the request time is also 7 seconds. With The es
 Be if the sampling rate is lowered to once per 10 seconds and the 16500 are divided over 7 Vibex Server (=customers) it is possible to get ingest the required signal values and have 3 seconds left to do the http request. This seems to be the optimal constalation.
 
 So optimum is:
-- 7 Vibex servers that can be called in parallel
-- Having sample rate of every 10 seconds to allow request and processing.
-- This will lead to monthly cost for Azure Functions of €36.
+-   7 Vibex servers that can be called in parallel
+-   Having sample rate of every 10 seconds to allow request to be retreived and sent to event hub processing.
+-   This will lead to monthly cost for Azure Functions of €36.
 
+###Cost of Pull Scenario using Service Fabric ###
+The cost of Service Fabric are easier to determine than for azure function. Azure Service Fabric is billed on the rent of virtual machines. Service Fabric 4 dimensions where they are billend;
 
+-   Size Virtual Machines, VIrtual machine can have a wide range of sizes, ranging from a very small one "A1, with q core and 0.75 GB RAM" to very large ones "H16MR, with 16 core and 224 GB RAM". Ofcourse the price differs per size. We have chosen that D3 with 4 cores and 14 GB RAM. The system needs to run lots of actions that are memory intensive and large JSON PayLoads need to be processed. 
+
+- 	Duration. The VM are billed on the time they are active, disregard what they do. SO the number of hours that a VM runs is billed. We assume that VMs will run constantly so 744 hours a month.
+
+- 	Number of VMs. Service Fabric is a solution where compute and data is distributed over mulitple machines. Service Fabric can have scale sets and has a minimum of machines of 5. We assume that we need 1 Scale Set and that the minimum of 5 will be sufficient. 
+
+- Storage. There is storage required for log and diagnostics. The cost are similar to normal storage cost and we assume that 100 Gb will be enough.
+
+With these assumption the cost of Service Fabric will be:
+
+Number of VM: 		5
+Price of VM: 		€0.5000 / hr 
+Number of hours: 	744
+Storage: 			200 GB
+
+This will result in a stable price every month of € 1,864. 
 
 
 ###Cost of Pull Scenario using Web Apps/Jobs ###
 
-###Cost of Pull Scenario using Service Fabric ###
+The cost of Web Jobs will be the same as Service Fabric as the pricing is also be done on VM (called Instances) and we assume that similar sizing is require for WebJobs as Service Fabric. Advantage for WebJobs op a Azure Web APp is that scaling can start from 1 VM, so if the system is not processing data if can be automatically scale down to 1 machine, reducing cost. As the App Service will only be used for WebJobs we assume that a B3 (4 core, 7 GB Ram) should be enough. This results in a price of:
+
+Number of VM: 		5
+Price of VM: 		€0.253 / hr 
+Number of hours: 	744
+Storage: 			N/A
+
+This will result in a stable price of € 941.
 
 ###Cost of Push Scenario###
 
+The push scenario will not have cost for the retrieval and ingest into eventhub, since this is done at the customer site. This results in a very stable cost of € 0.
+
+###Cost of Event Hub
+
+The eventhub is billled on two dimenions:
+
+1. Throughput units for Ingress and Egress. The Ingress is the unit that are available to get the signals in. To get data into a system like Stream ANalytics also throughput unit for egress are required, which process the same data some the some number is required. The cost of 1 Throughput unit that can handle 1 MB / sec of ingress events and 2 MB/ Sec for egress events.
+
+2. Number of events. The event hub is billed per event and the price is € 0,024 per million events.
+
+In the below table 3 the calculation for the price for the cars is given for 1 signal per second.
+
+![Table 3: EventHubCost 1 per sec](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/EventHubCost 1 per sec.PNG)
+Table 3: EventHubCost 1 per sec
+
+In the table 3 can be seen that with 1 event . second and with a payload (size of signal message) the number of messages per month is 25,272 millon. This is calculated with 6 hours peak and 18 hour normal car usage.
+This results in a number of MB/Sec of 1.8. This means that we need 3 Ingress Throughput units (2 + one spare for peaks) and 3 Egress Throughput units. This all results in a montly cost of € 668.
+
+As we have seen in the Azure Functions description, it will be hard have 1 signal per second and it is more likely to have 1 signal per 10 second to allow the retrieval and processing into eventhub. This results into the following Table 4:
+
+![Table 4: EventHubCost 1 per 10 sec](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/EventHubCost 1 per 10 sec.PNG)
+Table 4: EventHubCost 1 per 10 sec
+
+This will result in a lower number of messages (2,527 million per month) and lower price ofcours and with 1 signal per 10 second the total price will be € 87,-.
+
+###Storage Cost###
+
+
 ###Cost of using IOT Hub###
 
+To be done by Valery.
+
 ###Total Cost###
+The cost of the different solution is as follows:
+
+####Pull scenario with 1 message per 10 seconds####
+Azure Function:
+	Storage Cost: 			
+	Azure Function Cost: 	
+	Event Hub Cost: 		87,-
+
+Service Fabric:
+	Storage Cost: 	
+	Service Fabric Cost:
+	Event Hub Cost:
+
+Azure WebJob:
+	Storage Cost: 	
+	App Web Cost:
+	Event Hub Cost:	
+
+####Push scenario with 1 message per second####
 
 Conclusion
 ----------
@@ -684,4 +759,5 @@ story, including (but not limited to) the following:
 
 -   GitHub repos
 
--   Etc…
+-   Microsoft Investment and other solutions
+	- Azure Vehicle Telemetry Analytics: https://gallery.cortanaintelligence.com/Solution/Vehicle-Telemetry-Analytics-9
