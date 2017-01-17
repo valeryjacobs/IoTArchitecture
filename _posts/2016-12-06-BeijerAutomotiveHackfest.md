@@ -284,7 +284,13 @@ The Push Scenario is much simpler than the push scenario as is also tested in th
 
 The customer has instead of the an deployment of the ViBeX Pull Api an alternative with an deployment of a ViBex Push Service. This ViBeX Push Service will directly sent car data to the Data Retriever (same as described in Pull Scenario). This Data Retriever will service has hub for the data and consequently sent it to storage and the Data Processor. The Data Processor will create alerts that will be sent to Beijer's Clients
 
-The main advantage is that for this architecture no Job Scheduler and Job Worker is required which simplifies it. The numbers of messages, bandwidth usage and storage will remain the same.
+This scenario has the the following advantages:
+
+1. No data collector and processor is required in Azure. This reduces compexity and cost
+
+2. The solution scales with the number of customers. When more customers are connected, the solution scales itself as then processing is done at the customer side
+
+3. The system only sents data when car actually produce data. In the pulling scenario the system needs to request for data even if there is none, just to know there is no data. With the push scenario, the system only sents data when car are driving.
 
 ### Adding IoT Hub for real-time data and cloud to device communication
 
@@ -546,9 +552,51 @@ Because or the similarities we have not created a solution during the HackFest. 
 
 ####Push Scenario####
 
-####Feedback Solution using IOT Hub####
+The push scenario as described above has a component that sends signal to the Event/IOT Hub from the Vibex Server. This will require that the ViBex Server that run at the Beijer Customer need an additional component that can sent car signal if they are present. The car data will be locally store in the data store of the customer. This can be any data store ranging from sql database to flatfiles. In the hackfest we assume that we retrieve data from a database. The test implementation is done via a console app, but this can be refactored to a daemon of a Windows Service to run as a background process.
 
-####Test Results####
+The code of the application is very similar to the code used in the Azure Function as it does the same functionality.
+
+The code that sent the message to the queue is the following. The method SendBatchToEventHub is same as the one in Azure Functions
+
+	static void Main(string[] args)
+	{
+	
+		//Step 1: Config
+	    var eventHubName = "functions";
+	    var maxBatchSize = 200000; //Max Bytes of a message
+	    long totalCurrentSize = 0;
+	    var connectionString = ConfigurationManager.AppSettings["vetudaEventHubConnectionString"].ToString();
+	    var eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, eventHubName);
+	    var batch = new List<EventData>();
+		var lastExecution = DataTime.Now;
+
+		//Keep on running
+		while(true)
+		{
+			//Step 2: Get new car data since last send action
+			var signalList = GetCarData(lastExecution); 
+
+			//Step3: Sent data to EventHub
+			foreach(SignalValue obj in signalList.SignalValues)
+			{
+				var serializedIOTObject = JsonConvert.SerializeObject(obj);
+				var x = new EventData(Encoding.UTF8.GetBytes(serializedIOTObject));
+				totalCurrentSize += x.SerializedSizeInBytes;
+				if (totalCurrentSize > maxBatchSize)
+				{
+					SendBatchToEventHub(batch, eventHubClient);
+					totalCurrentSize = 0;
+					batch.Clear();
+				}
+			
+				batch.Add(x);
+			}
+			SendBatchToEventHub(batch, eventHubClient);
+			lastExecution = DataTime.Now;
+		}
+	}
+
+This solutuion will get the car data in Step 2. We now have a function that random create data, but in real life this would be a method that gets it from the data storage that is used at the Beijer Customer.
 
 
 Cost
@@ -640,7 +688,7 @@ So optimum is:
 ###Cost of Pull Scenario using Service Fabric ###
 The cost of Service Fabric are easier to determine than for azure function. Azure Service Fabric is billed on the rent of virtual machines. Service Fabric 4 dimensions where they are billend;
 
--   Size Virtual Machines, VIrtual machine can have a wide range of sizes, ranging from a very small one "A1, with q core and 0.75 GB RAM" to very large ones "H16MR, with 16 core and 224 GB RAM". Ofcourse the price differs per size. We have chosen that D3 with 4 cores and 14 GB RAM. The system needs to run lots of actions that are memory intensive and large JSON PayLoads need to be processed. 
+-   Size Virtual Machines, Virtual machine can have a wide range of sizes, ranging from a very small one "A1, with q core and 0.75 GB RAM" to very large ones "H16MR, with 16 core and 224 GB RAM". Ofcourse the price differs per size. We have chosen that D3 with 4 cores and 14 GB RAM. The system needs to run lots of actions that are memory intensive and large JSON PayLoads need to be processed. 
 
 - 	Duration. The VM are billed on the time they are active, disregard what they do. SO the number of hours that a VM runs is billed. We assume that VMs will run constantly so 744 hours a month.
 
@@ -776,7 +824,7 @@ The cost for the Push scenario wull only introduce Event Hub and Storage Cost:
 	Event Hub Cost: 		€ 87,-
 
 	Total cost: 			€ 147,-
-	
+
 
 The cost for the processing at the customer at Beijer is not included in this.
 
