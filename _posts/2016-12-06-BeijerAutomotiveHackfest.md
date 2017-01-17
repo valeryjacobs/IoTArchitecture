@@ -773,9 +773,18 @@ THe cost per month for retrieving 1 signal per 10 seconds per car is shown in ta
 Table 5: Storage Cost 1 per 10 sec
 
 
-###Cost of using IOT Hub###
+###Cost of using Streaming Analytics###
+Streaming analystics is used in this Hackfest to calculate the number of signal values. If Stream Analytics will be used in a production solutio the cost are straight forward:
 
-To be done by Valery.
+Usage 															Price
+Volume of data processed by the streaming job 					€0.0008/GB 
+Streaming Unit (Blended measure of CPU, memory, throughput)		€0.0261/hr 
+
+For the Beijer case we calculated 2,57 TB per month and 2 MB / sec which result in cost of
+Volume of data processed by the streaming job 					€ 2,17 
+2 Streaming Unit 												€ 38.90
+Total 															€ 41.07
+
 
 ###Total Cost###
 The cost of the different solution is as follows:
@@ -817,7 +826,7 @@ Azure WebJob:
 
 ####Push scenario with 1 message per 10 second####
 
-The cost for the Push scenario wull only introduce Event Hub and Storage Cost:
+The cost for the Push scenario will only introduce Event Hub and Storage Cost:
 
 	Storage Cost: 			€ 70,- (€ 847 / 12)
 
@@ -831,22 +840,14 @@ The cost for the processing at the customer at Beijer is not included in this.
 Conclusion
 ----------
 
-This section will briefly summarize the technical story with the following
-details included:
+The Hackfest has proved that it is possible to send very large amounts of data to Azure and to be able to receive and process them. The HackFest delovered some interesting outcomes
 
--   Measurable impact/benefits resulting from the implementation of the
-    solution.
+1. The push scenario is much simpler and cheaper for Beijer. This has convinced them to change their architecture from exiting pull scenario into the push scenario
 
--   General lessons:
+2. Azure Functions are for single purpose solutions a more low cost solution than service fabric. In this scenario the functionality and services are very limited and the added value of Service Fabric is not used.
 
--   Insights the team came away with.
+3. Altough storage is very low cost, with large amounts of data the cost accumulates when data is stored over longer periods. It is there adviceable to proces data and store aggredations instead of the raw data.
 
--   What can be applied or reused for other environments or customers.
-
--   Opportunities going forward:
-
--   Details on how the customer plans to proceed or what more they hope to
-    accomplish.
 
 *If you’d really like to make your write-up pop, include a customer quote
 highlighting impact, benefits, general lessons, and/or opportunities.*
@@ -858,10 +859,12 @@ In this section, include a list of links to resources that complement your
 story, including (but not limited to) the following:
 
 -   Documentation
+	http://www.beijer.com/
 
 -   Blog posts
 
 -   GitHub repos
+
 
 -   Microsoft Investment and other solutions
 	- Azure Vehicle Telemetry Analytics: https://gallery.cortanaintelligence.com/Solution/Vehicle-Telemetry-Analytics-9
