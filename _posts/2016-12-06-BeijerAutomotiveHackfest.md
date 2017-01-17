@@ -698,7 +698,7 @@ This will result in a lower number of messages (2,527 million per month) and low
 
 ###Storage Cost###
 Next tot the processing also the storage of the data introduces some cost. For the calcuation we use the following constants as shown in table 4:
-![Table 4: Storage Cost constants](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/CostConstants.PNG.PNG)
+![Table 4: Storage Cost constants](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/CostConstants.PNG)
 Table 4: Storage Cost constants
 
 This table 4 shows that per month there will be 2.57 TB of data will be produced. The cost for storage has 3 parts:
