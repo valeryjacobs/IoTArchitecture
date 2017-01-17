@@ -667,7 +667,7 @@ Price of VM: 		€0.253 / hr
 Number of hours: 	744
 Storage: 			N/A
 
-This will result in a stable price of € 941.
+This will result in a stable price of € 941 per month.
 
 ###Cost of Push Scenario###
 
@@ -697,6 +697,32 @@ Table 4: EventHubCost 1 per 10 sec
 This will result in a lower number of messages (2,527 million per month) and lower price ofcours and with 1 signal per 10 second the total price will be € 87,-.
 
 ###Storage Cost###
+Next tot the processing also the storage of the data introduces some cost. For the calcuation we use the following constants as shown in table 4:
+![Table 4: Storage Cost constants](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/CostConstants.PNG.PNG)
+Table 4: Storage Cost constants
+
+This table 4 shows that per month there will be 2.57 TB of data will be produced. The cost for storage has 3 parts:
+Storage: 	€ 8.64 per TB/month
+retrieval 	€ 8.64 per TB/month
+Write 		€ 2,16 per TB/month
+
+In summary this will result in the following cost for 3 years with 1 signal per second. We assume that data will removed after 3 years, which means that cost are stable after 3 years.
+
+Storage Cost Year 1: 	€ 2,068
+Storage Cost Year 2: 	€ 5,271
+Storage Cost Year 3: 	€ 8,474
+Storage Cost Year >3: 	€ 8,474
+
+The cost when 1 signal per 10 seconds is retrieved is
+Storage Cost Year 1: 	€ 206,-
+Storage Cost Year 2: 	€ 527,-
+Storage Cost Year 3: 	€ 847,-
+Storage Cost Year >3: 	€ 847,-
+
+THe cost per month for retrieving 1 signal per 10 seconds per car is shown in table 5.
+
+![Table 5: Storage Cost 1 per 10 sec](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Storagecost 1 per 10 sec.PNG)
+Table 5: Storage Cost 1 per 10 sec
 
 
 ###Cost of using IOT Hub###
@@ -708,21 +734,32 @@ The cost of the different solution is as follows:
 
 ####Pull scenario with 1 message per 10 seconds####
 Azure Function:
-	Storage Cost: 			
-	Azure Function Cost: 	
-	Event Hub Cost: 		87,-
+	Storage Cost: 			€ 70,- (€ 847 / 12)
+	Azure Function Cost: 	€ 36,-
+	Event Hub Cost: 		€ 87,-
+	Total cost: 			€ 193,-
 
 Service Fabric:
-	Storage Cost: 	
-	Service Fabric Cost:
-	Event Hub Cost:
+	Storage Cost: 			€ 70,- (€ 847 / 12)
+	Service Fabric Cost: 	€ 1,864
+	Event Hub Cost: 		€ 87,-
+	Total Cost: 			€ 2,021
 
 Azure WebJob:
-	Storage Cost: 	
-	App Web Cost:
-	Event Hub Cost:	
+	Storage Cost: 			€ 70,- (€ 847 / 12)
+	App Web Cost: 			€ 941
+	Event Hub Cost:			€ 87,-
+	Total Cost: 			€ 1,098
+	
 
-####Push scenario with 1 message per second####
+####Push scenario with 1 message per 10 second####
+
+The cost for the Push scenario wull only introduce Event Hub and Storage Cost:
+	Storage Cost: 			€ 70,- (€ 847 / 12)
+	Event Hub Cost: 		€ 87,-
+	Total cost: 			€ 147,-
+
+The cost for the processing at the customer at Beijer is not included in this.
 
 Conclusion
 ----------
