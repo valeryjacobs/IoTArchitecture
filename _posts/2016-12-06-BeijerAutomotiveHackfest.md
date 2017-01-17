@@ -284,7 +284,13 @@ The Push Scenario is much simpler than the push scenario as is also tested in th
 
 The customer has instead of the an deployment of the ViBeX Pull Api an alternative with an deployment of a ViBex Push Service. This ViBeX Push Service will directly sent car data to the Data Retriever (same as described in Pull Scenario). This Data Retriever will service has hub for the data and consequently sent it to storage and the Data Processor. The Data Processor will create alerts that will be sent to Beijer's Clients
 
-The main advantage is that for this architecture no Job Scheduler and Job Worker is required which simplifies it. The numbers of messages, bandwidth usage and storage will remain the same.
+This scenario has the the following advantages:
+
+1. No data collector and processor is required in Azure. This reduces compexity and cost
+
+2. The solution scales with the number of customers. When more customers are connected, the solution scales itself as then processing is done at the customer side
+
+3. The system only sents data when car actually produce data. In the pulling scenario the system needs to request for data even if there is none, just to know there is no data. With the push scenario, the system only sents data when car are driving.
 
 ### Adding IoT Hub for real-time data and cloud to device communication
 
@@ -546,9 +552,51 @@ Because or the similarities we have not created a solution during the HackFest. 
 
 ####Push Scenario####
 
-####Feedback Solution using IOT Hub####
+The push scenario as described above has a component that sends signal to the Event/IOT Hub from the Vibex Server. This will require that the ViBex Server that run at the Beijer Customer need an additional component that can sent car signal if they are present. The car data will be locally store in the data store of the customer. This can be any data store ranging from sql database to flatfiles. In the hackfest we assume that we retrieve data from a database. The test implementation is done via a console app, but this can be refactored to a daemon of a Windows Service to run as a background process.
 
-####Test Results####
+The code of the application is very similar to the code used in the Azure Function as it does the same functionality.
+
+The code that sent the message to the queue is the following. The method SendBatchToEventHub is same as the one in Azure Functions
+
+	static void Main(string[] args)
+	{
+	
+		//Step 1: Config
+	    var eventHubName = "functions";
+	    var maxBatchSize = 200000; //Max Bytes of a message
+	    long totalCurrentSize = 0;
+	    var connectionString = ConfigurationManager.AppSettings["vetudaEventHubConnectionString"].ToString();
+	    var eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, eventHubName);
+	    var batch = new List<EventData>();
+		var lastExecution = DataTime.Now;
+
+		//Keep on running
+		while(true)
+		{
+			//Step 2: Get new car data since last send action
+			var signalList = GetCarData(lastExecution); 
+
+			//Step3: Sent data to EventHub
+			foreach(SignalValue obj in signalList.SignalValues)
+			{
+				var serializedIOTObject = JsonConvert.SerializeObject(obj);
+				var x = new EventData(Encoding.UTF8.GetBytes(serializedIOTObject));
+				totalCurrentSize += x.SerializedSizeInBytes;
+				if (totalCurrentSize > maxBatchSize)
+				{
+					SendBatchToEventHub(batch, eventHubClient);
+					totalCurrentSize = 0;
+					batch.Clear();
+				}
+			
+				batch.Add(x);
+			}
+			SendBatchToEventHub(batch, eventHubClient);
+			lastExecution = DataTime.Now;
+		}
+	}
+
+This solutuion will get the car data in Step 2. We now have a function that random create data, but in real life this would be a method that gets it from the data storage that is used at the Beijer Customer.
 
 
 Cost
@@ -640,7 +688,7 @@ So optimum is:
 ###Cost of Pull Scenario using Service Fabric ###
 The cost of Service Fabric are easier to determine than for azure function. Azure Service Fabric is billed on the rent of virtual machines. Service Fabric 4 dimensions where they are billend;
 
--   Size Virtual Machines, VIrtual machine can have a wide range of sizes, ranging from a very small one "A1, with q core and 0.75 GB RAM" to very large ones "H16MR, with 16 core and 224 GB RAM". Ofcourse the price differs per size. We have chosen that D3 with 4 cores and 14 GB RAM. The system needs to run lots of actions that are memory intensive and large JSON PayLoads need to be processed. 
+-   Size Virtual Machines, Virtual machine can have a wide range of sizes, ranging from a very small one "A1, with q core and 0.75 GB RAM" to very large ones "H16MR, with 16 core and 224 GB RAM". Ofcourse the price differs per size. We have chosen that D3 with 4 cores and 14 GB RAM. The system needs to run lots of actions that are memory intensive and large JSON PayLoads need to be processed. 
 
 - 	Duration. The VM are billed on the time they are active, disregard what they do. SO the number of hours that a VM runs is billed. We assume that VMs will run constantly so 744 hours a month.
 
@@ -667,7 +715,7 @@ Price of VM: 		€0.253 / hr
 Number of hours: 	744
 Storage: 			N/A
 
-This will result in a stable price of € 941.
+This will result in a stable price of € 941 per month.
 
 ###Cost of Push Scenario###
 
@@ -697,52 +745,109 @@ Table 4: EventHubCost 1 per 10 sec
 This will result in a lower number of messages (2,527 million per month) and lower price ofcours and with 1 signal per 10 second the total price will be € 87,-.
 
 ###Storage Cost###
+Next tot the processing also the storage of the data introduces some cost. For the calcuation we use the following constants as shown in table 4:
+![Table 4: Storage Cost constants](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/CostConstants.PNG)
+Table 4: Storage Cost constants
+
+This table 4 shows that per month there will be 2.57 TB of data will be produced. The cost for storage has 3 parts:
+Storage: 	€ 8.64 per TB/month
+retrieval 	€ 8.64 per TB/month
+Write 		€ 2,16 per TB/month
+
+In summary this will result in the following cost for 3 years with 1 signal per second. We assume that data will removed after 3 years, which means that cost are stable after 3 years.
+
+Storage Cost Year 1: 	€ 2,068
+Storage Cost Year 2: 	€ 5,271
+Storage Cost Year 3: 	€ 8,474
+Storage Cost Year >3: 	€ 8,474
+
+The cost when 1 signal per 10 seconds is retrieved is
+Storage Cost Year 1: 	€ 206,-
+Storage Cost Year 2: 	€ 527,-
+Storage Cost Year 3: 	€ 847,-
+Storage Cost Year >3: 	€ 847,-
+
+THe cost per month for retrieving 1 signal per 10 seconds per car is shown in table 5.
+
+![Table 5: Storage Cost 1 per 10 sec](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Storagecost 1 per 10 sec.PNG)
+Table 5: Storage Cost 1 per 10 sec
 
 
-###Cost of using IOT Hub###
+###Cost of using Streaming Analytics###
+Streaming analystics is used in this Hackfest to calculate the number of signal values. If Stream Analytics will be used in a production solutio the cost are straight forward:
 
-To be done by Valery.
+Usage 															Price
+Volume of data processed by the streaming job 					€0.0008/GB 
+Streaming Unit (Blended measure of CPU, memory, throughput)		€0.0261/hr 
+
+For the Beijer case we calculated 2,57 TB per month and 2 MB / sec which result in cost of
+Volume of data processed by the streaming job 					€ 2,17 
+2 Streaming Unit 												€ 38.90
+Total 															€ 41.07
+
 
 ###Total Cost###
 The cost of the different solution is as follows:
 
 ####Pull scenario with 1 message per 10 seconds####
 Azure Function:
-	Storage Cost: 			
-	Azure Function Cost: 	
-	Event Hub Cost: 		87,-
+
+	Storage Cost: 			€ 70,- (€ 847 / 12)
+
+	Azure Function Cost: 	€ 36,-
+
+	Event Hub Cost: 		€ 87,-
+
+	Total cost: 			€ 193,-
+
 
 Service Fabric:
-	Storage Cost: 	
-	Service Fabric Cost:
-	Event Hub Cost:
+
+	Storage Cost: 			€ 70,- (€ 847 / 12)
+
+	Service Fabric Cost: 	€ 1,864
+
+	Event Hub Cost: 		€ 87,-
+
+	Total Cost: 			€ 2,021
+	
 
 Azure WebJob:
-	Storage Cost: 	
-	App Web Cost:
-	Event Hub Cost:	
 
-####Push scenario with 1 message per second####
+	Storage Cost: 			€ 70,- (€ 847 / 12)
+
+	App Web Cost: 			€ 941
+
+	Event Hub Cost:			€ 87,-
+
+	Total Cost: 			€ 1,098
+
+	
+
+####Push scenario with 1 message per 10 second####
+
+The cost for the Push scenario will only introduce Event Hub and Storage Cost:
+
+	Storage Cost: 			€ 70,- (€ 847 / 12)
+
+	Event Hub Cost: 		€ 87,-
+
+	Total cost: 			€ 147,-
+
+
+The cost for the processing at the customer at Beijer is not included in this.
 
 Conclusion
 ----------
 
-This section will briefly summarize the technical story with the following
-details included:
+The Hackfest has proved that it is possible to send very large amounts of data to Azure and to be able to receive and process them. The HackFest delovered some interesting outcomes
 
--   Measurable impact/benefits resulting from the implementation of the
-    solution.
+1. The push scenario is much simpler and cheaper for Beijer. This has convinced them to change their architecture from exiting pull scenario into the push scenario
 
--   General lessons:
+2. Azure Functions are for single purpose solutions a more low cost solution than service fabric. In this scenario the functionality and services are very limited and the added value of Service Fabric is not used.
 
--   Insights the team came away with.
+3. Altough storage is very low cost, with large amounts of data the cost accumulates when data is stored over longer periods. It is there adviceable to proces data and store aggredations instead of the raw data.
 
--   What can be applied or reused for other environments or customers.
-
--   Opportunities going forward:
-
--   Details on how the customer plans to proceed or what more they hope to
-    accomplish.
 
 *If you’d really like to make your write-up pop, include a customer quote
 highlighting impact, benefits, general lessons, and/or opportunities.*
@@ -754,10 +859,12 @@ In this section, include a list of links to resources that complement your
 story, including (but not limited to) the following:
 
 -   Documentation
+	http://www.beijer.com/
 
 -   Blog posts
 
 -   GitHub repos
+
 
 -   Microsoft Investment and other solutions
 	- Azure Vehicle Telemetry Analytics: https://gallery.cortanaintelligence.com/Solution/Vehicle-Telemetry-Analytics-9
