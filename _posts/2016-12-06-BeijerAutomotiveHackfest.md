@@ -764,15 +764,19 @@ Azure WebJob:
 	Event Hub Cost:			€ 87,-
 
 	Total Cost: 			€ 1,098
-	
+
 	
 
 ####Push scenario with 1 message per 10 second####
 
 The cost for the Push scenario wull only introduce Event Hub and Storage Cost:
+
 	Storage Cost: 			€ 70,- (€ 847 / 12)
+
 	Event Hub Cost: 		€ 87,-
+
 	Total cost: 			€ 147,-
+	
 
 The cost for the processing at the customer at Beijer is not included in this.
 
