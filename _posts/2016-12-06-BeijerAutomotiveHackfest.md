@@ -169,19 +169,19 @@ required for the more complex and data intensive scenario’s.
 The core points that were part of this investigation were:
 
 -   Can Azure offer the bandwidth and processing power to ingest the data
-    streams.
+    streams?
 
 -   How does the architecture need to be setup in order to meet the requirements
-    for handling 50.000 vehicles recording data on 1 per second interval.
+    for handling 50.000 vehicles recording data on 1 per second interval?
 
 -   What are the costs involved in implementing the architecture using Azure
-    PaaS services and how can these costs be minimized.
+    PaaS services and how can these costs be minimized?
 
 -   How can the current architecture be optimized for the cloud to improve
-    performance and scalability.
+    performance and scalability?
 
 -   Which alternatives are there in the implementation and what are their pro’s
-    and cons.
+    and cons?
 
 To get to an acceptable of details the hackfest was scoped to focus on data
 ingest. Further processing and analyzing the data is considered a project by
@@ -549,6 +549,72 @@ Because or the similarities we have not created a solution during the HackFest. 
  
 
 ####Pull Scenario using Azure Service Fabric####
+The Azure Service Fabric is very similar to the Azure Functions, except a stateless server is created that in a loop reads job from the queue and processes the job. The stateless server is defined as follows:
+
+        protected override async Task RunAsync(CancellationToken cancellationToken)
+        {
+            QueueReader queue = new QueueReader(log, performer);
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    if (!await queue.ReadItem(cancellationToken))
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.LogWarning("Exception", ex.ToString());
+                }
+            }
+        }
+
+The performer is a JobPerformer that is defined in the constructor to the service:
+
+        public CollectorWorker(StatelessServiceContext context)
+            : base(context)
+        {
+            rand = new Random();
+            log = new ServiceLogger(this);
+            performer = new JobPerformer(log);
+        }
+
+In the queue.ReadItem a job from the qeueu is read (is there is one) and the associated Job is executed.
+
+        public async Task<bool> ReadItem(CancellationToken cancellationToken)
+        {
+            await _queue.CreateIfNotExistsAsync();
+
+            // Get the next message
+            CloudQueueMessage retrievedMessage = await _queue.GetMessageAsync(cancellationToken);
+            if (retrievedMessage != null)
+            {
+                try
+                {
+                    _watch.Start();
+                    var json = retrievedMessage.AsString;
+                    var job = JsonConvert.DeserializeObject<CollectorJob>(json);
+                    _log.LogMessage($"Starting Job {job.EndPoint}{job.Query}");
+                    var success = await _performer.PerformJob(job, cancellationToken);
+
+                    if (success)
+                    {
+                        await _queue.DeleteMessageAsync(retrievedMessage, cancellationToken);
+                    }
+                }
+                finally
+                {
+                    _watch.Stop();
+                    _log.LogInfo("ExecutionTime", _watch.AverageExecutionInSeconds.ToString());
+                }
+            }
+
+            return retrievedMessage != null;
+        }
+
+The Job is similar as in the Azure Function scenario where the data is retrieved and batches of 200kb are sent to the EventHub.
 
 ####Push Scenario####
 
@@ -556,47 +622,74 @@ The push scenario as described above has a component that sends signal to the Ev
 
 The code of the application is very similar to the code used in the Azure Function as it does the same functionality.
 
-The code that sent the message to the queue is the following. The method SendBatchToEventHub is same as the one in Azure Functions
+The class of data that is sent to the eventhub is the following:
+        public class SignalValue
+        {
+            public string Vin { get; set; }
+            public int SignalId { get; set; }
+            public DateTime Time { get; set; }
+            public string Location { get; set; }
+            public string Value { get; set; }
+        }
 
-	static void Main(string[] args)
-	{
-	
-		//Step 1: Config
-	    var eventHubName = "functions";
-	    var maxBatchSize = 200000; //Max Bytes of a message
-	    long totalCurrentSize = 0;
-	    var connectionString = ConfigurationManager.AppSettings["vetudaEventHubConnectionString"].ToString();
-	    var eventHubClient = EventHubClient.CreateFromConnectionString(connectionString, eventHubName);
-	    var batch = new List<EventData>();
-		var lastExecution = DataTime.Now;
+That is a class EventHubAgent that check that status of the database of the BeijerCustomer and in case there is new data it will sent it to the eventhub. 
 
-		//Keep on running
-		while(true)
-		{
-			//Step 2: Get new car data since last send action
-			var signalList = GetCarData(lastExecution); 
+        public EventHubAgent(IDatabaseAccessFacade databaseAccessFacade, string eventhubName, string connectionString )
+        {
+            databaseAccessFacade.DatabaseActionOcurred += DatabaseAccessFacade_DatabaseActionOcurred;
+            mEventhubName = eventhubName;
+            mConnectionString = connectionString;
+        }
 
-			//Step3: Sent data to EventHub
-			foreach(SignalValue obj in signalList.SignalValues)
-			{
-				var serializedIOTObject = JsonConvert.SerializeObject(obj);
-				var x = new EventData(Encoding.UTF8.GetBytes(serializedIOTObject));
-				totalCurrentSize += x.SerializedSizeInBytes;
-				if (totalCurrentSize > maxBatchSize)
-				{
-					SendBatchToEventHub(batch, eventHubClient);
-					totalCurrentSize = 0;
-					batch.Clear();
-				}
-			
-				batch.Add(x);
-			}
-			SendBatchToEventHub(batch, eventHubClient);
-			lastExecution = DataTime.Now;
-		}
-	}
+The databaseAccessFacade is depending on the implemention of the database at the customer and can range from flatfile to sqlserver.
 
-This solutuion will get the car data in Step 2. We now have a function that random create data, but in real life this would be a method that gets it from the data storage that is used at the Beijer Customer.
+The code that sent the message to the queue is the following. The method SendBatchToEventHub is same as the one in Azure Functions. If there is new data and the following event will be triggered:
+
+        private void DatabaseAccessFacade_DatabaseActionOcurred(object sender, DatabaseActionEventArgs e)
+        {
+			//Step 1
+            Console.WriteLine($"database action occurred. Sending {e.Values.Count} to eventHub");
+            Stopwatch s = new Stopwatch();
+            s.Start();
+            var values = e.Values.Select(v => new SignalValue { Vin = v.Vin, Location = v.Location, SignalId = v.SignalId, Time = v.Time, Value = v.Value }).ToList();
+            var eventHubClient = EventHubClient.CreateFromConnectionString(mConnectionString, mEventhubName);
+
+            var batch = new List<EventData>();
+            var maxBatchSize = 200000; //max size of eventhub batch
+
+			//Step 2: Create Batch
+            long totalCurrentSize = 0;
+            int i = 0;
+            foreach (var value in values)
+            {
+                i++;
+                var serializedSignalValue = JsonConvert.SerializeObject(value);
+                var x = new EventData(Encoding.UTF8.GetBytes(serializedSignalValue));
+                totalCurrentSize += x.SerializedSizeInBytes;
+                if (totalCurrentSize > maxBatchSize)
+                {
+                    Console.WriteLine($"Sending batch to eventHub. batch size: {i}");
+                    SendBatchToEventHub(batch, eventHubClient);
+                    totalCurrentSize = 0;
+                    batch.Clear();
+                    i = 0;
+                }
+
+                batch.Add(x);
+            }
+
+			//Step 3: Finalize
+            Console.WriteLine($"Sending batch to eventHub. batch size: {i}");
+            SendBatchToEventHub(batch, eventHubClient);
+            Console.WriteLine($"done sending batches, time spent sending: {s.ElapsedMilliseconds} milliseconds");
+        }
+
+        public static void SendBatchToEventHub(List<EventData> batch, EventHubClient eventHubClient)
+        {
+            eventHubClient.SendBatch(batch);
+        }
+
+This solutuion will get the car data via DatabaseActionEventArgs and created a values List in Step 1. In Step 2 the data is batched into a eventhub batch of max site 200kb and sent to the event hub in batches.
 
 
 Cost
