@@ -960,12 +960,10 @@ In this section, include a list of links to resources that complement your
 story, including (but not limited to) the following:
 
 -   Documentation
-	http://www.beijer.com/
-
--   Blog posts
+	- http://www.beijer.com/
 
 -   GitHub repos
-
+	- This repo contains all the code in Sources folder
 
 -   Microsoft Investment and other solutions
 	- Azure Vehicle Telemetry Analytics: https://gallery.cortanaintelligence.com/Solution/Vehicle-Telemetry-Analytics-9
