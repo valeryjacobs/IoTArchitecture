@@ -691,6 +691,17 @@ The code that sent the message to the queue is the following. The method SendBat
 
 This solutuion will get the car data via DatabaseActionEventArgs and created a values List in Step 1. In Step 2 the data is batched into a eventhub batch of max site 200kb and sent to the event hub in batches.
 
+Technical Execution
+-------------------
+
+When we had created the code for all the scenario's we have executed the code and the most important finding can be seen in the cost section. We had created a powerbi dashboard on top of the Stream Analistics to see how many signal were sent to the Event Hub. In all scenario's were were able to get to 3 around 3 million events. See screenshot 1 from our PowerBI.
+
+![ScreenShot 1: 3 Million Signals in 5 minutes](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Screenshot1.PNG)
+
+In the execution the eventhub was hit quite hard and we had to do some configuration on the number of Throughput Units for the EventHub to accomodate the throughput. This resulted in high througput in our eventhub as can be see in screenshot 2.
+
+![ScreenShot 2: Busy Eventhub](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/EventHubMetrics.PNG)
+
 
 Cost
 ----------
@@ -718,11 +729,6 @@ This section describes the cost of the different scenarios. The cost will be def
 - Usage EventHub
 
 	The Azure Event Hub is priced on the number of events that are processed (called ingres) and the use of throughput units. Each throughput unit is capable to handle 1 MB/sec of events, with max 1000 ingress events. We assume that we need the max of 20 thoughput units (10 for input and 10 for output to for instance stream analytics). The cost are €0.024 per million events and €9.41 euro per throughput unit for a full month (744 hours).
-
-- Usage IOTHub
-
-	To be done by Valery.
-
 
 
 
