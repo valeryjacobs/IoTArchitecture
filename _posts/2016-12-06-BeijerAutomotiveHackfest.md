@@ -889,7 +889,7 @@ Total 															€ 41.07
 The cost of the different solution is as follows:
 
 ####Pull scenario with 1 message per 10 seconds####
-Azure Function:
+Azure Function (per month):
 
 	Storage Cost: 			€ 70,- (€ 847 / 12)
 
@@ -900,7 +900,7 @@ Azure Function:
 	Total cost: 			€ 193,-
 
 
-Service Fabric:
+Service Fabric (per month):
 
 	Storage Cost: 			€ 70,- (€ 847 / 12)
 
@@ -911,7 +911,7 @@ Service Fabric:
 	Total Cost: 			€ 2,021
 	
 
-Azure WebJob:
+Azure WebJob (per month):
 
 	Storage Cost: 			€ 70,- (€ 847 / 12)
 
@@ -926,6 +926,8 @@ Azure WebJob:
 ####Push scenario with 1 message per 10 second####
 
 The cost for the Push scenario will only introduce Event Hub and Storage Cost:
+
+Cost per month:
 
 	Storage Cost: 			€ 70,- (€ 847 / 12)
 
