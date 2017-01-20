@@ -696,11 +696,11 @@ Technical Execution
 
 When we had created the code for all the scenario's we have executed the code and the most important finding can be seen in the cost section. We had created a powerbi dashboard on top of the Stream Analistics to see how many signal were sent to the Event Hub. In all scenario's were were able to get to 3 around 3 million events. See screenshot 1 from our PowerBI.
 
-![ScreenShot 1: 3 Million Signals in 5 minutes](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/EventHubMetrics.png)
+![ScreenShot 1: 3 Million Signals in 5 minutes](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Screenshot1.png)
 
 In the execution the eventhub was hit quite hard and we had to do some configuration on the number of Throughput Units for the EventHub to accomodate the throughput. This resulted in high througput in our eventhub as can be see in screenshot 2.
 
-![ScreenShot 2: Busy Eventhub](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/Screenshot1.png)
+![ScreenShot 2: Busy Eventhub](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/EventHubMetrics.png)
 
 
 Cost
