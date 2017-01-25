@@ -63,18 +63,6 @@ Begin with an intro statement with the following details:
 
 -   What are their product/service offerings?
 
-	Beijer Automotive are expanding their business by re-collecting and extending
-	the telematics their customers are generating and transforming this input into a
-	new data service called Vetuda©. Based on this data service they will be able to
-	unlock even more scenarios in the field of traffic management, road conditions,
-	public safety or whatever opportunity this vast dataset might disclose.
-
-	Beijer Automotive are expanding their business by re-collecting and extending
-	the telematics their customers are generating and transforming this input into a
-	new data service called Vetuda©. Based on this data service they will be able to
-	unlock even more scenarios in the field of traffic management, road conditions,
-	public safety or whatever opportunity this vast dataset might disclose.
-
 	Beijer Automotive are expanding their business by re-collecting and
     extending the telematics their customers are generating and transforming
     this input into a new data service called Vetuda©. Based on this data
