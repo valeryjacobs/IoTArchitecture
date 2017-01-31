@@ -282,32 +282,91 @@ This scenario has the the following advantages:
 
 ### Adding IoT Hub for real-time data and cloud to device communication
 
-Although the Vetuda system focusses on the ingestion of large amounts of data it
-does make sense to categorize these data streams. Data can be handled as it
-comes into the system to result in near-real-time alerts (hot path) while at the
-same time it can be analyzed later on together with data accumulated over time
-(cold path).
+Although the Vetuda system focusses on the ingestion of large amounts of data it does make sense to categorize these data streams. Data can be handled as it comes into the system to result in near-real-time alerts (hot path) while at the same time it can be analyzed later on together with data accumulated over time (cold path).
 
-Vetuda also has plans to extend their services with new types of vehicles that
-might not even involve the intermediate data provider role but consists of
-devices (vehicles) connecting to the cloud back-end directly.
+Vetuda also has plans to extend their services with new types of vehicles that might not even involve the intermediate data provider role but consists of devices (vehicles) connecting to the cloud back-end directly.
 
-For these requirements to be satisfied we added one of the core Azure IoT
-Services into the mix, IoT Hub. IoT Hub makes sense for those scenario’s where a
-direct connection between an end node device or a gateway and the cloud is
-involved. It offers high-volume data ingest and a registry for potentially
-millions of devices. It communicates over multiple protocols like HTTP (mostly
-for backwards compatibility), MQTT (as it is the most popular protocol in M2M
-and IoT currently) and AMQP (a new, Microsoft backed, member in the IoT family
-offering updates specs compared to MQTT).
+For these requirements to be satisfied we added one of the core Azure IoT Services into the mix, IoT Hub. IoT Hub makes sense for those scenario’s where a direct connection between an end node device or a gateway and the cloud is involved. It offers high-volume data ingest and a registry for potentially millions of devices that can maintain durable communication channels supporting data transports in both directions. It communicates over multiple protocols like HTTP(s) (mostly for backwards compatibility), MQTT (as it is the most widely used protocol in M2M and IoT currently) and AMQP (a new, Microsoft backed, member in the IoT family offering updated specs compared to MQTT on security and efficiency).
 
-When a fleet of devices is directly connected to the Vetuda back-end it also
-places the responsibility of device management in that domain. Luckily IoT Hub
-device management has multiple features that accelerate implementing device
-management.
+When a fleet of devices is directly connected to the Vetuda back-end it also places the responsibility of device management in that domain. Luckily IoT Hub device management has multiple features that accelerate implementing this responsbility into the solution. Microsoft's approach here is to provide APIs on top of the IoT Hub services to either integrate with or build a custom asset management solution. As devices go through a life-cycle of provisioning, configuring, updating and eventually decommisioning there are quite a few things that need to be implemented or integrated before that cycle is complete. For the hackfest the focus was on the feature set that directly could be applied to the Vetuda case and the first step to leveraging the benefits of this service.
 
-Under the hood IoT Hub is based on Azure Event Hubs and on the consumer side
-(reading the data from the buffer) the developer experience is identical
+![ScreenShot 4.0: IoT Hub Architectural positioning](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/BeijerIoTHubArch.png)
+
+Under the hood IoT Hub is based on Azure Event Hubs and on the consumer side (reading the data from the buffer) the developer experience is identical. The main differences are on service and device registry end of IoT Hub where there are several endpoints for specific tasks like managing devices and their state.
+
+For the hackfest we looked at the specific application for IoT Hub and noted the fact that for Vetuda device identity actually was an issue in that data should never be tracable to its source, which sounds like the opposite of that IoT Hub tries to offer. On the other hand, one of the more advanced and differentiating scenarios is where Vetuda would be able to query and communicate back to vehicles in a way that the the system would target vehicles in a specific geographical area (geo-fenced). The approach we chose was to use device twins and let vehicles update their GPS data in device twin properties.
+
+![ScreenShot 4.1: IoT Hub Device Twins](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/BeijerIoTDeviceTwins.png)
+
+The Device Twin properties could look like the following:
+'''
+	@"{
+             tags: {
+                 location: {
+                     region: 'EU',
+                     lon: '52.3054724',
+                     lat: '4.7533562'
+                 },
+                 allocation:{fleet: 'AgriAutomotive_F12',
+                     fleetId: 'F12C345'},
+			     state:{wipers:1,
+				 		foglight:1,
+						 warningLight:0}
+             }
+         }"
+'''
+
+The vehicle client would update the state using:
+'''
+await registryManager.UpdateTwinAsync(twin.DeviceId, patch, twin.ETag);
+'''
+And the back-end can query the state of all vehicles in a registry using this syntax:
+
+	"SELECT * FROM devices WHERE tags.location.lon < 53 AND tags.location.lat < 5
+
+	query = registryManager.CreateQuery("SELECT * FROM devices WHERE tags.location.lon < 53 AND tags.location.lat < 5", 100);
+	var twinsInNearFogZone = await query.GetNextAsTwinAsync();
+	Console.WriteLine("Vehicles in fog zone: {0}", string.Join(", ", twinsInNearFogZone.Select(t => t.DeviceId)));
+
+
+Using this approach a back-end service can query state without the need for vehicles being online. In general it is a good practice to be independant on both connectivity and bandwidth for back-end querying as 3rd party services might depend on swift query results coming through. 
+
+The query detects vehicles in a geo-fenced region and based on the result a couple of things could be determined:
+1. The vehicle is in a specific region
+2. In this region x vehicles have fog light on
+3. An alert should be send to vehicles in this region
+
+To confirm with the requirement that vehicle data should not be tracable to its owner or driver all de registry data could be stored anonymously where IoT Hub know how to query or send a message to a specific vehicle but there is no meta-data available to trace any other entity related to that vehicle. GPS locations are tricky in this regard as one could trace a work or home address and still find out who was driving. A solution to this problem could be to rasterize the GPS data to a lower resolution (offering less accuracy in querying vehicle positioning) or only storing region identifiers that have no queriable GPS properties.
+
+![ScreenShot 4.2: Applying a geographical raster for device querying](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/BeijerIoTHubRaster.png)
+
+There are multiple options for sending messages back to vehicles using IoT Hub:
+
+Direct methods
+	Direct response
+	Applicable for lower latency messages like: turn on/off 
+	8Kb max.
+	1500/minute/unit max.
+
+Device Twin desired properties
+	State update, 
+	Applicable for higher latency messages like config changes
+	8Kb max.
+
+C2D messages
+	one-way
+	Larger sized messages, up to 256Kb
+	Lower frequency
+	5000/minute/unit max.
+
+A new feature, recently added to IoT Hub, offers the opportunity to filter incoming messages and reroute them to external endpoint as they enter the IoT Hub ingest endpoint. This can be interesting for setting up an alerting scenario where certain message values (properties) can be routed to an andpoint that translated incoming messages into notifications to mobile phones or trigger that communicate back to vehicles or other services using f.e. a web hook.
+
+![ScreenShot 4.3: Routing messages from within IoT Hub](https://github.com/svandenhoven/IoTArchitecture/blob/master/images/BeijerIoTHubRoutes.png)
+
+The way we chose to implement this was to use Azure Service Bus as the external endpoint and filter the warning light state so that engaged warning lights could result in a very quick response on the backend. Azure Service Bus additionally offers topics on top of queues where multiple parties, or system, could subscribe to event coming from the filtered stream of events.
+
+
+Using the Service Bus Explorer tool we simulated this scenario. Device state updates would come in and the IoT Hub routing filter would pass them through to the service bus. It is possible to define multiple endpoint and filters. IoT Hub manages all the state for filtering and splitting message routes.
 
 
 Technical delivery
